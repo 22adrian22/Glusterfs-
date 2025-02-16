@@ -1,0 +1,56 @@
+- hosts: gluster_servers
+  become: yes
+  tasks:
+    - name: Instalar GlusterFS Server
+      apt:
+        name: glusterfs-server
+        state: present
+        update_cache: yes
+
+    - name: Iniciar y habilitar GlusterFS
+      systemd:
+        name: glusterd
+        state: started
+        enabled: yes
+
+    - name: Crear directorio de almacenamiento
+      file:
+        path: /gluster-storage
+        state: directory
+
+- hosts: gluster1
+  become: yes
+  tasks:
+    - name: Asegurar que GlusterFS está instalado antes de configurarlo
+      command: which gluster
+      register: gluster_check
+      changed_when: false
+
+    - name: Agregar gluster2 como peer
+      command: gluster peer probe 192.168.57.102
+      when: gluster_check.rc == 0
+
+    - name: Crear volumen GlusterFS
+      command: gluster volume create gv0 replica 2 transport tcp 192.168.57.101:/gluster-storage 192.168.57.102:/gluster-storage force
+      when: gluster_check.rc == 0
+
+    - name: Iniciar volumen GlusterFS
+      command: gluster volume start gv0
+      when: gluster_check.rc == 0
+
+- hosts: gluster_client
+  become: yes
+  tasks:
+    - name: Instalar GlusterFS Client
+      apt:
+        name: glusterfs-client
+        state: present
+        update_cache: yes
+
+    - name: Crear directorio de montaje
+      file:
+        path: /mnt/glusterfs
+        state: directory
+
+    - name: Montar el volumen GlusterFS
+      command: mount -t glusterfs 192.168.57.101:/gv0 /mnt/glusterfs

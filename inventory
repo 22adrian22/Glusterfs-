@@ -1,0 +1,6 @@
+[gluster_servers]
+gluster1 ansible_host=192.168.57.101 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/gluster1/virtualbox/private_key
+gluster2 ansible_host=192.168.57.102 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/gluster2/virtualbox/private_key
+
+[gluster_client]
+client ansible_host=192.168.57.103 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/client/virtualbox/private_key
